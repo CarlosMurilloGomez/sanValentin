@@ -96,8 +96,9 @@ async def option_selected(update: Update, context: CallbackContext) -> None:
     elif historico.__len__() == 6:
         if update.message.text in PREGUNTAS["Hijos"]:
             historico.append(update.message.text)
-            personas = buscarPersonasAfines(historico)
-            await update.message.reply_text("Estas son las personas mas afines contigo:"+personas)
+            mensaje = buscarPersonasAfines(historico)
+            historico.clear()
+            await update.message.reply_text(mensaje)
         else:
             keyboard = [[option] for option in PREGUNTAS["Hijos"]]
             reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
@@ -106,7 +107,7 @@ async def option_selected(update: Update, context: CallbackContext) -> None:
         await update.message.reply_text("Para iniciar el cuestionario escribe /love")
 
 def buscarPersonasAfines(historico):
-    personasAfines = personas
+    personasAfines = personas.copy()
     for key, per in personasAfines.items():
         per["Afinidad"] = 0
         if int(historico[2]) > per["Edad"]-5 and int(historico[2]) < per["Edad"]+5:
@@ -127,11 +128,37 @@ def buscarPersonasAfines(historico):
 
         if historico[6]=="Duda" or per["Hijos"]=="Duda":
             per["Afinidad"] +=1
-        elif historico[6] == per["Fin"]:
+        elif historico[6] == per["Hijos"]:
             per["Afinidad"] +=2
 
-    personas_ordenadas = dict(sorted(personasAfines.items(), key=lambda x: x[1]['Afinidad'], reverse=True))
-    return "\n- " + personas_ordenadas.get(0)["NombreCompleto"] + "\n- " + personas_ordenadas.get(1)["NombreCompleto"] + "\n- " + personas_ordenadas.get(2)["NombreCompleto"]
+
+    personas_ordenadas = sorted(personasAfines.values(), key=lambda x: x['Afinidad'], reverse=True)
+
+    mensaje = "Estas son las personas mas afines contigo:"
+    top1 = personas_ordenadas[0]
+    top2 = personas_ordenadas[1]
+    top3 = personas_ordenadas[2]
+    mensaje += ("\n1.- " + top1["NombreCompleto"]+
+                ":\n      *Edad: "+str(top1["Edad"])+
+                "\n      *Sexo: "+top1["Sexo"]+
+                "\n      *Grado: "+top1["Grado"]+
+                "\n      *Fin: "+top1["Fin"]+
+                "\n      *Hijos: "+top1["Hijos"])
+    mensaje += ("\n2.- " + top2["NombreCompleto"] +
+                ":\n      *Edad: " + str(top2["Edad"]) +
+                "\n      *Sexo: " + top2["Sexo"] +
+                "\n      *Grado: " + top2["Grado"] +
+                "\n      *Fin: " + top2["Fin"] +
+                "\n      *Hijos: " + top2["Hijos"])
+    mensaje += ("\n3.- " + top3["NombreCompleto"] +
+                ":\n      *Edad: " + str(top3["Edad"]) +
+                "\n      *Sexo: " + top3["Sexo"] +
+                "\n      *Grado: " + top3["Grado"] +
+                "\n      *Fin: " + top3["Fin"] +
+                "\n      *Hijos: " + top3["Hijos"])
+
+
+    return mensaje
 
 
 def main():
